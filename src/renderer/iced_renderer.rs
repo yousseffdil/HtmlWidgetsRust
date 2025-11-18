@@ -1,7 +1,6 @@
 use iced::widget::{Column, Container, Image, Text};
-use iced::widget::image;
 use iced::widget::image::Handle;
-use iced::{Element, Length, ContentFit};
+use iced::{Element, Length};
 
 use crate::parser::html_parser::DomNode;
 
@@ -11,45 +10,45 @@ pub enum Message {
 }
 
 fn load_image(src: &str) -> Element<'static, Message> {
-    let handle = if src.starts_with("http") {
-        match reqwest::blocking::get(src) {
-            Ok(response) => match response.bytes() {
-                Ok(bytes) => Handle::from_memory(bytes.to_vec()),
-                Err(_) => return Text::new("Error cargando bytes de imagen").into(),
-            },
-            Err(_) => return Text::new("Error descargando imagen").into(),
-        }
-    } else {
-        Handle::from_path(src)
-    };
+    // Handle::from_path funciona tanto para URLs como para archivos locales
+    let handle = Handle::from_path(src);
 
     Image::new(handle)
         .content_fit(iced::ContentFit::Contain)
-        .width(Length::Fill)
+        .width(Length::Fixed(400.0)) // Tamaño fijo para mejor control
         .into()
 }
+
 pub fn render_dom_to_iced<'a>(node: &DomNode) -> Element<'a, Message> {
+    // Si el nodo tiene contenido de texto, renderizarlo
     if let Some(content) = &node.text_content {
         return Text::new(content.clone()).into();
     }
 
+    // Manejo especial para imágenes
     if node.tag_name == "img" {
         if let Some(src) = node.attributes.get("src") {
             return load_image(src);
         } else {
-            return Text::new("Imagen sin src").into();
+            return Text::new("⚠️ Imagen sin atributo 'src'").into();
         }
     }
 
+    // Renderizar hijos recursivamente
     let children = node
         .children
         .iter()
         .map(render_dom_to_iced)
         .collect::<Vec<_>>();
 
-    
+    // Crear el elemento según el tag
     let element: Element<'a, Message> = match node.tag_name.as_str() {
-        "body" | "div" => Column::with_children(children)
+        "body" => Column::with_children(children)
+            .spacing(20)
+            .padding(20)
+            .into(),
+
+        "div" | "id" => Column::with_children(children)
             .spacing(10)
             .into(),
 
@@ -58,15 +57,9 @@ pub fn render_dom_to_iced<'a>(node: &DomNode) -> Element<'a, Message> {
             .into(),
 
         "p" => Column::with_children(children)
-            .padding([0, 0, 5, 0])
+            .padding([0, 0, 10, 0])
             .into(),
-        "img" => {
-            if let Some(src) = node.attributes.get("src") {
-                load_image(src)
-            } else {
-                Text::new("[img sin src]").into()
-            }
-        }
+
         _ => Column::with_children(children).into(),
     };
 
