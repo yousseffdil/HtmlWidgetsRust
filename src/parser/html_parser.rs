@@ -40,7 +40,7 @@ pub fn parse_html(source: &str) -> Option<ParseResult> {
 
     let mut config = WindowConfig::default();
 
-    // Parsear configuración
+    // Parsear configuración (buscar en el documento completo, no solo en body)
     if let Ok(config_node) = dom.select_first("config") {
         if let Ok(window_node) = config_node.as_node().select_first("window") {
             let element = window_node.as_node().as_element().unwrap();
@@ -82,10 +82,22 @@ pub fn parse_html(source: &str) -> Option<ParseResult> {
         }
     }
 
-    // Parsear body
+    // Parsear body - IMPORTANTE: Filtrar el nodo <config> de los hijos
     if let Ok(body) = dom.select_first("body") {
+        let body_node = build_dom_node(body.as_node());
+        
+        // Filtrar cualquier nodo <config> que haya quedado dentro del body
+        let filtered_body = DomNode {
+            tag_name: body_node.tag_name,
+            attributes: body_node.attributes,
+            children: body_node.children.into_iter()
+                .filter(|child| child.tag_name != "config")
+                .collect(),
+            text_content: body_node.text_content,
+        };
+        
         return Some(ParseResult {
-            body: build_dom_node(body.as_node()),
+            body: filtered_body,
             config,
         });
     }
