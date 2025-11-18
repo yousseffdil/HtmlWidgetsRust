@@ -544,13 +544,6 @@ Contributions are welcome! Areas that need work:
 - [ ] Documentation improvements
 
 ---
-
-## 📄 License
-
-[Your License Here]
-
----
-
 ## 🙏 Acknowledgments
 
 - GTK4 team for the UI toolkit
