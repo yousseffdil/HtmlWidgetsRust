@@ -44,20 +44,15 @@ pub fn render_dom_to_iced<'a>(node: &DomNode) -> Element<'a, Message> {
     // Crear el elemento según el tag
     let element: Element<'a, Message> = match node.tag_name.as_str() {
         "body" => Column::with_children(children)
-            .spacing(20)
-            .padding(20)
             .into(),
 
         "div" | "id" => Column::with_children(children)
-            .spacing(10)
             .into(),
 
         "h1" => Column::with_children(children)
-            .padding(10)
             .into(),
 
         "p" => Column::with_children(children)
-            .padding([0, 0, 10, 0])
             .into(),
 
         _ => Column::with_children(children).into(),
