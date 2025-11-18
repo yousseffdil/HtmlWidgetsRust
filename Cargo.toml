@@ -4,5 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-iced = { version = "0.12", features = ["tokio", "image"] }
+gtk4 = { version = "0.8", package = "gtk4", features = ["v4_12"] }
+gio = "0.18"
+glib = "0.18"
 kuchiki = "0.8"
