@@ -9,12 +9,87 @@ pub struct DomNode {
     pub text_content: Option<String>,
 }
 
-pub fn parse_html(source: &str) -> Option<DomNode> {
+#[derive(Debug, Clone)]
+pub struct WindowConfig {
+    pub width: f32,
+    pub height: f32,
+    pub decorations: bool,
+    pub transparent: bool,
+    pub resizable: bool,
+}
+
+impl Default for WindowConfig {
+    fn default() -> Self {
+        WindowConfig {
+            width: 800.0,
+            height: 600.0,
+            decorations: true,
+            transparent: false,
+            resizable: true,
+        }
+    }
+}
+
+pub struct ParseResult {
+    pub body: DomNode,
+    pub config: WindowConfig,
+}
+
+pub fn parse_html(source: &str) -> Option<ParseResult> {
     let dom = kuchiki::parse_html().from_utf8().one(source.as_bytes());
 
-    if let Ok(body) = dom.select_first("body") {
-        return Some(build_dom_node(body.as_node()));
+    let mut config = WindowConfig::default();
+
+    // Parsear configuración
+    if let Ok(config_node) = dom.select_first("config") {
+        if let Ok(window_node) = config_node.as_node().select_first("window") {
+            let element = window_node.as_node().as_element().unwrap();
+            let attrs = element.attributes.borrow();
+            
+            if let Some(width) = attrs.get("width") {
+                config.width = width.parse().unwrap_or(800.0);
+            }
+            if let Some(height) = attrs.get("height") {
+                config.height = height.parse().unwrap_or(600.0);
+            }
+        }
+
+        if let Ok(decorations_node) = config_node.as_node().select_first("decorations") {
+            let element = decorations_node.as_node().as_element().unwrap();
+            let attrs = element.attributes.borrow();
+            
+            if let Some(enabled) = attrs.get("enabled") {
+                config.decorations = enabled == "true";
+            }
+        }
+
+        if let Ok(transparent_node) = config_node.as_node().select_first("transparent") {
+            let element = transparent_node.as_node().as_element().unwrap();
+            let attrs = element.attributes.borrow();
+            
+            if let Some(enabled) = attrs.get("enabled") {
+                config.transparent = enabled == "true";
+            }
+        }
+
+        if let Ok(resizable_node) = config_node.as_node().select_first("resizable") {
+            let element = resizable_node.as_node().as_element().unwrap();
+            let attrs = element.attributes.borrow();
+            
+            if let Some(enabled) = attrs.get("enabled") {
+                config.resizable = enabled == "true";
+            }
+        }
     }
+
+    // Parsear body
+    if let Ok(body) = dom.select_first("body") {
+        return Some(ParseResult {
+            body: build_dom_node(body.as_node()),
+            config,
+        });
+    }
+    
     None
 }
 
