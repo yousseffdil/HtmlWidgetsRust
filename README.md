@@ -1,569 +1,823 @@
-# GTK4 Desktop Widget for Windows
 
-A Rust-based desktop widget system that renders custom HTML-like markup as native GTK4 widgets on Windows, integrated directly into the desktop environment.
+# 🎨 Desktop Widgets - Documentation
+
+Customizable desktop widget system using Rust, GTK4, and simplified HTML.
 
 ## 📋 Table of Contents
 
-- [Overview](#overview)
-- [Architecture](#architecture)
-- [Problem &amp; Solution Journey](#problem--solution-journey)
-- [How It Works](#how-it-works)
-- [Usage](#usage)
-- [Technical Details](#technical-details)
-- [Future Improvements](#future-improvements)
+1. [Installation](https://claude.ai/chat/506788d7-0c41-4e28-adba-3eaaf2644247#installation)
+2. [Project Structure](https://claude.ai/chat/506788d7-0c41-4e28-adba-3eaaf2644247#project-structure)
+3. [Create Your First Widget](https://claude.ai/chat/506788d7-0c41-4e28-adba-3eaaf2644247#create-your-first-widget)
+4. [HTML Syntax](https://claude.ai/chat/506788d7-0c41-4e28-adba-3eaaf2644247#html-syntax)
+5. [Window Configuration](https://claude.ai/chat/506788d7-0c41-4e28-adba-3eaaf2644247#window-configuration)
+6. [Supported Tags](https://claude.ai/chat/506788d7-0c41-4e28-adba-3eaaf2644247#supported-tags)
+7. [Complete Examples](https://claude.ai/chat/506788d7-0c41-4e28-adba-3eaaf2644247#complete-examples)
+8. [Troubleshooting](https://claude.ai/chat/506788d7-0c41-4e28-adba-3eaaf2644247#troubleshooting)
 
 ---
 
-## 🎯 Overview
+## 🚀 Installation
 
-This project creates desktop widgets similar to Rainmeter or Conky, but using Rust, GTK4, and a custom HTML parser. Widgets are rendered as native GTK components and positioned on the Windows desktop with special window styles to behave like desktop overlays.
+### Prerequisites
 
-### Key Features
+***Rust** (version 1.70 or higher)
 
-- ✅ Custom HTML-like markup parser
-- ✅ Native GTK4 rendering
-- ✅ Windows desktop integration
-- ✅ Configurable window properties
-- ✅ Centered positioning
-- ✅ No taskbar icon
-- ✅ Always-below behavior (stays under normal windows)
+***GTK4** installed on your system
+
+* Windows: [GTK4 for Windows](https://gtk.org/)
+* Linux: `sudo apt install libgtk-4-dev`
+* macOS: `brew install gtk4`
+
+### Build the Project
+
+```bash
+
+# Clone or download the project
+
+cdyour_project
+
+
+# Build in development mode
+
+cargobuild
+
+
+# Build in release mode (optimized)
+
+cargobuild--release
+
+```
+
+### Folder Structure
+
+After building, create the `widget/` folder next to the executable:
+
+```
+
+your_project/
+
+├── widget/              ← Create this folder
+
+│   ├── widget1.html     ← Your widgets here
+
+│   ├── widget2.html
+
+│   └── assets/          ← Images and resources
+
+│       └── rust.png
+
+└── target/
+
+    └── release/
+
+        └── your_program.exe
+
+```
 
 ---
 
-## 🏗️ Architecture
-
-### High-Level System Flow
-
-```mermaid
-graph TD
-    A[HTML Source] --> B[Parser]
-    B --> C[DOM Tree]
-    C --> D[GTK Renderer]
-    D --> E[GTK Widgets]
-    E --> F[GTK Window]
-    F --> G[Win32 Integration]
-    G --> H[Desktop Widget]
-  
-    style A fill:#e1f5ff
-    style H fill:#c8e6c9
-```
-
-### Project Structure
-
-```mermaid
-graph LR
-    A[main.rs] --> B[parser/html_parser.rs]
-    A --> C[renderer/gtk_renderer.rs]
-    B --> D[DomNode Tree]
-    C --> E[GTK Widgets]
-    A --> F[Win32 API Integration]
-  
-    style A fill:#fff9c4
-    style B fill:#e1f5ff
-    style C fill:#f3e5f5
-    style F fill:#ffccbc
-```
-
-### Directory Structure
+## 📁 Project Structure
 
 ```
-HTMLIcedRenderer/
+
+project/
+
 ├── src/
-│   ├── main.rs                    # Entry point + Win32 integration
+
+│   ├── main.rs                    # Main entry point
+
 │   ├── parser/
+
 │   │   ├── mod.rs
-│   │   └── html_parser.rs         # Custom HTML parser
-│   ├── renderer/
-│   │   ├── mod.rs
-│   │   └── gtk_renderer.rs        # DOM to GTK converter
-│   └── html_source.html           # Widget content
+
+│   │   └── html_parser.rs         # HTML parser
+
+│   └── renderer/
+
+│       ├── mod.rs
+
+│       └── gtk_renderer.rs        # GTK renderer
+
+│
+
+├── widget/                         # 📂 YOUR WIDGETS HERE
+
+│   ├── clock.html                 # Clock widget
+
+│   ├── notes.html                 # Notes widget
+
+│   ├── weather.html               # Weather widget
+
+│   └── assets/                    # Resources (images, etc.)
+
+│       ├── icon.png
+
+│       └── background.jpg
+
+│
+
 ├── Cargo.toml
+
 └── README.md
+
 ```
 
 ---
 
-## 🔄 Problem & Solution Journey
+## 🎯 Create Your First Widget
 
-### Initial Approach: SetParent to Desktop
+### 1. Create the HTML file
 
-```mermaid
-sequenceDiagram
-    participant GTK as GTK4 Window
-    participant Win32 as Win32 API
-    participant Desktop as Desktop Window
-  
-    GTK->>Win32: Create Window (HWND)
-    Win32->>Desktop: Find Progman/WorkerW
-    Win32->>GTK: SetParent(hwnd, desktop)
-    GTK--xWin32: ❌ Rendering stops
-  
-    Note over GTK,Desktop: Problem: GTK loses rendering context
-```
-
-**Problem:** When using `SetParent()` to make the GTK window a child of the desktop (Progman/WorkerW), GTK4 loses its rendering context and the window becomes invisible.
-
-**Why it failed:**
-
-- GTK4 expects full control over its window lifecycle
-- Changing the parent window breaks GTK's internal state management
-- The rendering pipeline gets disconnected from the display
-
-### Attempted Solutions
-
-```mermaid
-graph TD
-    A[SetParent Approach] -->|Failed| B[Try Force Redraw]
-    B -->|Failed| C[Try UpdateWindow]
-    C -->|Failed| D[Try RedrawWindow]
-    D -->|Failed| E[Try Timer-based Refresh]
-    E -->|Failed| F[Window Styles Only ✅]
-  
-    style A fill:#ffcdd2
-    style B fill:#ffcdd2
-    style C fill:#ffcdd2
-    style D fill:#ffcdd2
-    style E fill:#ffcdd2
-    style F fill:#c8e6c9
-```
-
-#### Attempt 1: Force Redraw After SetParent
-
-```rust
-SetParent(hwnd, desktop_hwnd);
-InvalidateRect(hwnd, None, true);
-UpdateWindow(hwnd);
-```
-
-**Result:** ❌ Window still invisible
-
-#### Attempt 2: RedrawWindow with Flags
-
-```rust
-RedrawWindow(hwnd, None, None, 
-    RDW_INVALIDATE | RDW_UPDATENOW | RDW_ALLCHILDREN);
-```
-
-**Result:** ❌ Window still invisible
-
-#### Attempt 3: Delayed SetParent
-
-```rust
-// Show window first
-window.present();
-// Wait 500ms, then SetParent
-glib::timeout_add_local_once(Duration::from_millis(500), || {
-    set_as_desktop_widget(&window);
-});
-```
-
-**Result:** ❌ Window appears briefly, then disappears
-
-### ✅ Final Solution: Window Styles Without SetParent
-
-Instead of changing the window's parent, we modify its styles to behave like a desktop widget:
-
-```mermaid
-graph TD
-    A[GTK Window Created] --> B[Get HWND]
-    B --> C[Modify Window Styles]
-    C --> D[WS_POPUP: Remove title bar]
-    C --> E[WS_EX_TOOLWINDOW: Hide from taskbar]
-    C --> F[WS_EX_NOACTIVATE: Non-interactive]
-    C --> G[SetWindowPos with HWND_BOTTOM]
-    D --> H[Desktop Widget ✅]
-    E --> H
-    F --> H
-    G --> H
-  
-    style H fill:#c8e6c9
-```
-
-**Key insight:** We don't need `SetParent` to achieve desktop widget behavior. Using the right window styles achieves the same visual result while keeping GTK's rendering intact.
-
----
-
-## ⚙️ How It Works
-
-### 1. HTML Parsing
-
-```mermaid
-graph LR
-    A[HTML Source] --> B[kuchiki Parser]
-    B --> C{Parse Config?}
-    C -->|Yes| D[WindowConfig]
-    C -->|No| E[Default Config]
-    B --> F[Parse Body]
-    F --> G[Recursive DOM Build]
-    G --> H[DomNode Tree]
-  
-    style A fill:#e1f5ff
-    style H fill:#c8e6c9
-```
-
-#### HTML Format
+Create `widget/hello.html`:
 
 ```html
+
 <config>
-    <window width="400" height="300" />
-    <decorations enabled="false" />
-    <transparent enabled="false" />
-    <resizable enabled="false" />
+
+    <windowwidth="300"height="200" />
+
+    <decorationsenabled="false" />
+
+    <resizableenabled="false" />
+
 </config>
 
-<body>
-    <div id="main-container">
-        <h1>Widget Title</h1>
-        <p>Content here</p>
-        <img src="assets/image.png" />
-    </div>
-</body>
-```
-
-#### Parser Output
-
-```rust
-ParseResult {
-    config: WindowConfig {
-        width: 400.0,
-        height: 300.0,
-        decorations: false,
-        transparent: false,
-        resizable: false,
-    },
-    body: DomNode {
-        tag_name: "body",
-        attributes: {},
-        children: [
-            DomNode {
-                tag_name: "div",
-                attributes: {"id": "main-container"},
-                children: [...]
-            }
-        ]
-    }
-}
-```
-
-### 2. DOM Tree Construction
-
-```mermaid
-graph TD
-    A[kuchiki NodeRef] --> B{Node Type?}
-    B -->|Element| C[Extract Tag & Attributes]
-    B -->|Text| D[Create Text Node]
-    B -->|Other| E[Skip]
-    C --> F[Recurse Children]
-    D --> G[Add to Parent]
-    F --> G
-    G --> H[Complete DomNode]
-  
-    style H fill:#c8e6c9
-```
-
-### 3. GTK Rendering
-
-```mermaid
-graph TD
-    A[DomNode] --> B{Tag Type?}
-    B -->|text| C[Create Label]
-    B -->|h1-h6| D[Create Label with Markup]
-    B -->|p| E[Create Vertical Box]
-    B -->|img| F[Create Image from File]
-    B -->|div/body| G[Create Container Box]
-    B -->|unknown| H[Debug Label]
-  
-    C --> I[GTK Widget]
-    D --> I
-    E --> J[Add Children Recursively]
-    F --> I
-    G --> J
-    H --> I
-    J --> I
-  
-    style I fill:#c8e6c9
-```
-
-#### Supported Tags
-
-| Tag               | GTK Widget        | Special Handling           |
-| ----------------- | ----------------- | -------------------------- |
-| `text`          | `Label`         | Direct text content        |
-| `h1-h6`         | `Label`         | Pango markup for size/bold |
-| `p`             | `Box(Vertical)` | Container for text         |
-| `img`           | `Image`         | Loads from file path       |
-| `div`, `body` | `Box(Vertical)` | Container with margins     |
-
-### 4. Windows Integration
-
-```mermaid
-sequenceDiagram
-    participant App as GTK Application
-    participant Win as GTK Window
-    participant W32 as Win32 API
-    participant Mon as Monitor
-  
-    App->>Win: Create Window
-    Win->>Win: set_child(widgets)
-    Win->>App: present()
-    App->>W32: Timer: set_as_desktop_widget()
-    W32->>Win: Get HWND
-    W32->>Mon: Get screen dimensions
-    W32->>Win: Calculate center position
-    W32->>Win: Modify window styles
-    W32->>Win: SetWindowPos(HWND_BOTTOM)
-    Win->>App: Desktop widget ready ✅
-```
-
-#### Window Style Modifications
-
-```rust
-// Change to popup style (no title bar)
-SetWindowLongPtrW(hwnd, GWL_STYLE, WS_POPUP.0 as isize);
-
-// Add extended styles
-SetWindowLongPtrW(hwnd, GWL_EXSTYLE, 
-    WS_EX_NOACTIVATE |  // Don't activate on click
-    WS_EX_TOOLWINDOW    // Hide from taskbar
-);
-
-// Position at bottom of Z-order
-SetWindowPos(hwnd, HWND_BOTTOM, x, y, w, h, 
-    SWP_NOACTIVATE | SWP_SHOWWINDOW);
-```
-
----
-
-## 🚀 Usage	
-
-### Installation
-
-```bash
-# Clone the repository
-git clone <repository-url>
-cd HTMLIcedRenderer
-
-# Build
-cargo build --release
-
-# Run
-cargo run --release
-```
-
-### Creating a Widget
-
-1. **Edit `html_source.html`:**
-
-```html
-<config>
-    <window width="500" height="400" />
-    <decorations enabled="false" />
-</config>
 
 <body>
+
     <div>
-        <h1>My Desktop Widget</h1>
-        <p>Current time will go here</p>
+
+        <h1>Hello World!</h1>
+
+        <p>My first desktop widget</p>
+
+        <button>Click Me!</button>
+
     </div>
+
 </body>
+
 ```
 
-2. **Run the application:**
+### 2. Run the application
 
 ```bash
-cargo run --release
+
+cargorun
+
 ```
 
-### Dependencies
+Your widget will appear on the desktop! 🎉
 
-```toml
-[dependencies]
-gtk4 = { version = "0.8", features = ["v4_12"] }
-gio = "0.18"
-glib = "0.18"
-kuchiki = "0.8"
+---
 
-[target.'cfg(windows)'.dependencies]
-windows = { version = "0.52", features = [
-    "Win32_Foundation", 
-    "Win32_UI_WindowsAndMessaging",
-    "Win32_Graphics_Gdi",
-]}
+## 📝 HTML Syntax
+
+### Basic Structure
+
+Every widget has two sections:
+
+```html
+
+<config>
+
+    <!-- Window configuration -->
+
+</config>
+
+
+<body>
+
+    <!-- Widget content -->
+
+</body>
+
 ```
 
 ---
 
-## 🔧 Technical Details
+## ⚙️ Window Configuration
 
-### Parser Implementation
+### `<config>` Tag
 
-The parser uses `kuchiki` (a HTML parser) to build a custom DOM tree:
+Defines how the widget window behaves and looks.
 
-```rust
-pub struct DomNode {
-    pub tag_name: String,
-    pub attributes: HashMap<String, String>,
-    pub children: Vec<DomNode>,
-    pub text_content: Option<String>,
-}
+#### `<window>`
+
+Window size and position:
+
+```html
+
+<windowwidth="400"height="300" />
+
 ```
 
-**Key features:**
+With specific position:
 
-- Separates `<config>` from `<body>` content
-- Filters config nodes from the rendered DOM
-- Recursively builds tree structure
-- Preserves text nodes with trimming
+```html
 
-### Renderer Implementation
+<windowwidth="400"height="300"x="100"y="100" />
 
-Maps DOM nodes to GTK widgets with pattern matching:
-
-```rust
-match node.tag_name.as_str() {
-    "text" => Label::new(text).upcast(),
-    "h1" => styled_label_with_size(32),
-    "img" => Image::from_file(src).upcast(),
-    "div" => Box::new(Vertical).upcast(),
-    _ => debug_label("Unknown tag")
-}
 ```
 
-**Styling:**
+**Attributes:**
 
-- Uses Pango markup for text formatting
-- CSS provider for global styles
-- Margin/padding through GTK properties
+*`width`: Width in pixels (default: 800)
 
-### Win32 Integration
+*`height`: Height in pixels (default: 600)
 
-```rust
-// Get GTK window's native handle
-unsafe fn get_hwnd_from_surface(surface: &Surface) -> Option<HWND> {
-    extern "C" {
-        fn gdk_win32_surface_get_handle(
-            surface: *mut c_void
-        ) -> *mut c_void;
-    }
-    let handle = gdk_win32_surface_get_handle(surface_ptr);
-    Some(HWND(handle as isize))
-}
+*`x`: Horizontal position (optional, default: centered)
+
+*`y`: Vertical position (optional, default: centered)
+
+#### `<decorations>`
+
+Show/hide window borders:
+
+```html
+
+<decorationsenabled="false" />  <!-- No borders or buttons -->
+
+<decorationsenabled="true" />   <!-- With borders and buttons -->
+
 ```
 
-**Window positioning:**
+#### `<transparent>`
 
-- Gets primary monitor dimensions
-- Calculates centered position
-- Accounts for taskbar (uses `rcWork` not `rcMonitor`)
+Enable transparency (experimental):
+
+```html
+
+<transparentenabled="true" />
+
+```
+
+#### `<resizable>`
+
+Allow window resizing:
+
+```html
+
+<resizableenabled="true" />   <!-- Resizable -->
+
+<resizableenabled="false" />  <!-- Fixed size -->
+
+```
+
+### Complete Config Example
+
+```html
+
+<config>
+
+    <windowwidth="500"height="400"x="50"y="50" />
+
+    <decorationsenabled="false" />
+
+    <transparentenabled="false" />
+
+    <resizableenabled="true" />
+
+</config>
+
+```
 
 ---
 
-## 🎯 Future Improvements
+## 🏷️ Supported Tags
+
+### Headers
+
+```html
+
+<h1>Main Title</h1>
+
+<h2>Subtitle</h2>
+
+<h3>Header Level 3</h3>
+
+<h4>Header Level 4</h4>
+
+<h5>Header Level 5</h5>
+
+<h6>Header Level 6</h6>
+
+```
+
+**Font sizes:**
+
+* h1: 32px
+* h2: 28px
+* h3: 24px
+* h4: 20px
+* h5: 18px
+* h6: 16px
+
+### Paragraphs
+
+```html
+
+<p>This is a normal text paragraph.</p>
+
+```
+
+### Images
+
+```html
+
+<imgsrc="assets/logo.png"width="200"/>
+
+```
+
+**Attributes:**
+
+*`src`: Relative path to executable folder (required)
+
+*`width`: Width in pixels (default: 350)
+
+### Buttons
+
+```html
+
+<button>Click Me!</button>
+
+<buttonid="btn-primary"width="200">Wide Button</button>
+
+<buttonid="btn-secondary"height="50">Tall Button</button>
+
+```
+
+**Attributes:**
+
+*`id`: Unique identifier (optional)
+
+*`width`: Width in pixels (optional)
+
+*`height`: Height in pixels (optional)
+
+### Containers
+
+```html
+
+<div>
+
+    <h1>Group of elements</h1>
+
+    <p>Containers group other elements</p>
+
+</div>
+
+
+<divid="sidebar">
+
+    <button>Button 1</button>
+
+    <button>Button 2</button>
+
+</div>
+
+```
+
+**Attributes:**
+
+*`id`: Unique identifier (optional)
+
+**Features:**
+
+* Automatic vertical orientation
+* 10px spacing between elements
+* 10px margins on all sides
+
+---
+
+## 📚 Complete Examples
+
+### Simple Clock Widget
+
+`widget/clock.html`:
+
+```html
+
+<config>
+
+    <windowwidth="250"height="150"x="20"y="20" />
+
+    <decorationsenabled="false" />
+
+    <resizableenabled="false" />
+
+</config>
+
+
+<body>
+
+    <divid="clock-container">
+
+        <h1>🕐 12:34</h1>
+
+        <p>Tuesday, Nov 19 2024</p>
+
+    </div>
+
+</body>
+
+```
+
+### Notes Widget
+
+`widget/notes.html`:
+
+```html
+
+<config>
+
+    <windowwidth="350"height="400"x="300"y="20" />
+
+    <decorationsenabled="false" />
+
+    <resizableenabled="true" />
+
+</config>
+
+
+<body>
+
+    <div>
+
+        <h2>📝 Quick Notes</h2>
+
+  
+
+        <divid="note-1">
+
+            <h4>Shopping</h4>
+
+            <p>- Milk<br/>- Bread<br/>- Eggs</p>
+
+        </div>
+
+  
+
+        <divid="note-2">
+
+            <h4>To-Do</h4>
+
+            <p>- Finish project<br/>- Call doctor</p>
+
+        </div>
+
+  
+
+        <buttonwidth="300">Add Note</button>
+
+    </div>
+
+</body>
+
+```
+
+### Profile Widget
+
+`widget/profile.html`:
+
+```html
+
+<config>
+
+    <windowwidth="300"height="350"x="700"y="20" />
+
+    <decorationsenabled="false" />
+
+    <resizableenabled="false" />
+
+</config>
+
+
+<body>
+
+    <divid="profile">
+
+        <h2>👤 My Profile</h2>
+
+  
+
+        <imgsrc="assets/avatar.png"width="150"/>
+
+  
+
+        <h3>John Doe</h3>
+
+        <p>Software Developer</p>
+
+  
+
+        <divid="buttons">
+
+            <buttonwidth="250">Edit Profile</button>
+
+            <buttonwidth="250">Settings</button>
+
+        </div>
+
+    </div>
+
+</body>
+
+```
+
+### Dashboard Widget
+
+`widget/dashboard.html`:
+
+```html
+
+<config>
+
+    <windowwidth="600"height="500"x="100"y="100" />
+
+    <decorationsenabled="false" />
+
+    <resizableenabled="true" />
+
+</config>
+
+
+<body>
+
+    <div>
+
+        <h1>📊 Dashboard</h1>
+
+  
+
+        <divid="stats">
+
+            <h3>Today's Stats</h3>
+
+            <p>• 45 tasks completed</p>
+
+            <p>• 3 hours of coding</p>
+
+            <p>• 12 commits</p>
+
+        </div>
+
+  
+
+        <divid="quick-actions">
+
+            <h3>Quick Actions</h3>
+
+            <buttonwidth="250">New Task</button>
+
+            <buttonwidth="250">View Calendar</button>
+
+            <buttonwidth="250">Open Project</button>
+
+        </div>
+
+  
+
+        <imgsrc="assets/chart.png"width="500"/>
+
+    </div>
+
+</body>
+
+```
+
+---
+
+## 🔧 Troubleshooting
+
+### ❌ "No valid widgets found in widget/ folder"
+
+**Solution:**
+
+1. Verify that the `widget/` folder exists next to the executable
+2. Make sure files have `.html` extension
+3. Check that HTML files are valid
+
+### ❌ "Error parsing HTML"
+
+**Common causes:**
+
+* Missing `<config>` or `<body>` section
+* Unclosed tags
+* Attributes without quotes
+
+**Correct format:**
+
+```html
+
+<buttonwidth="200">Text</button>  ✅
+
+<buttonwidth=200>Text</button>    ❌
+
+```
+
+### ❌ "Image without src" or image not showing
+
+**Solution:**
+
+1. Verify the path is relative to the executable
+2. The `assets/` folder must be next to the executable
+
+```
+
+target/release/
+
+├── your_program.exe
+
+├── widget/
+
+│   └── my_widget.html
+
+└── assets/              ← Images go here
+
+    └── image.png
+
+```
+
+In HTML use:
+
+```html
+
+<imgsrc="assets/image.png"width="200"/>
+
+```
+
+### ❌ Widget doesn't appear on desktop (Windows)
+
+**Possible causes:**
+
+1. Windows Defender or antivirus blocking
+2. GTK4 not installed correctly
+3. Insufficient permissions
+
+**Solution:**
+
+* Run as administrator the first time
+* Make sure GTK4 is in PATH
+
+### ❌ "Could not connect to a display"
+
+**On Linux/WSL:**
+
+```bash
+
+exportDISPLAY=:0
+
+```
+
+### 💡 Widget shows but doesn't update
+
+**Solution:**
+
+* Widgets are static by default
+* For dynamic content, you'll need to modify the Rust code
+* Restart the application after editing HTML files
+
+---
+
+## 🎨 Design Tips
+
+### 1. **Keep widgets small**
+
+* Recommended sizes: 200-500px width
+* Avoid making widgets too large
+
+### 2. **Use descriptive IDs**
+
+```html
+
+<buttonid="save-button">Save</button>
+
+<divid="notification-panel">...</div>
+
+```
+
+### 3. **Organize your content**
+
+```html
+
+<divid="header">
+
+    <h1>Title</h1>
+
+</div>
+
+
+<divid="content">
+
+    <p>Main content</p>
+
+</div>
+
+
+<divid="footer">
+
+    <button>Action</button>
+
+</div>
+
+```
+
+### 4. **Group related elements**
+
+```html
+
+<divid="button-group">
+
+    <button>Option 1</button>
+
+    <button>Option 2</button>
+
+    <button>Option 3</button>
+
+</div>
+
+```
+
+---
+
+## 🚀 Next Steps
 
 ### Planned Features
 
-```mermaid
-graph TD
-    A[Current State] --> B[Add CSS Support]
-    A --> C[Dynamic Content Updates]
-    A --> D[Event Handling]
-    A --> E[Multiple Widgets]
-  
-    B --> F[Inline Styles]
-    B --> G[External CSS Files]
-  
-    C --> H[Real-time Data]
-    C --> I[Animations]
-  
-    D --> J[Click Handlers]
-    D --> K[Keyboard Input]
-  
-    E --> L[Widget Manager]
-    E --> M[Configuration UI]
-  
-    style A fill:#c8e6c9
-    style B fill:#fff9c4
-    style C fill:#fff9c4
-    style D fill:#fff9c4
-    style E fill:#fff9c4
+* [ ] Custom CSS for styling
+* [ ] JavaScript for interactivity
+* [ ] Real-time updates
+* [ ] Event system for buttons
+* [ ] More HTML elements (input, textarea, etc.)
+* [ ] Animations and transitions
+* [ ] Predefined themes
+
+### Contributing
+
+Have ideas or improvements? Contributions are welcome!
+
+---
+
+## 📖 Quick Reference
+
+### Execution Commands
+
+```bash
+
+cargorun                    # Development
+
+cargobuild--release        # Production
+
+./target/release/program     # Execute
+
 ```
 
-### Enhancement Ideas
+### Minimal Widget Structure
 
-1. **CSS Styling**
+```html
 
-   - Parse inline `style` attributes
-   - Support external CSS files
-   - CSS-to-GTK property mapping
-2. **Dynamic Content**
+<config>
 
-   - API for updating widget content
-   - Timer-based refresh
-   - System information integration (CPU, RAM, etc.)
-3. **Interactivity**
+    <windowwidth="300"height="200" />
 
-   - Remove `WS_EX_NOACTIVATE` for clickable widgets
-   - Button handlers
-   - Form inputs
-4. **Advanced Positioning**
+    <decorationsenabled="false" />
 
-   - Corner anchoring (top-left, bottom-right, etc.)
-   - Multiple monitor support
-   - Save/restore positions
-5. **Performance**
+</config>
 
-   - Lazy rendering
-   - Partial updates
-   - GPU acceleration investigation
 
----
+<body>
 
-## 📝 Lessons Learned
+    <div>
 
-### Key Takeaways
+        <h1>My Widget</h1>
 
-1. **GTK4 + Win32 Compatibility**
+    </div>
 
-   - Direct parent manipulation breaks GTK rendering
-   - Window styles are more compatible than parent changes
-   - Always test native API calls with GTK
-2. **Rust FFI with Win32**
+</body>
 
-   - `windows-rs` crate provides safe wrappers
-   - Still need `unsafe` for GTK interop
-   - Type conversions need careful handling
-3. **HTML Parsing**
+```
 
-   - `kuchiki` is excellent for HTML parsing
-   - Custom DOM structure gives flexibility
-   - Filtering unwanted nodes post-parse works well
-4. **Desktop Widget Behavior**
+### Most Used Attributes
 
-   - `HWND_BOTTOM` keeps widget under normal windows
-   - `WS_EX_TOOLWINDOW` hides from Alt+Tab and taskbar
-   - `WS_EX_NOACTIVATE` prevents focus stealing
+| Tag          | Attributes          | Example                                                |
+
+| ------------ | ------------------- | ------------------------------------------------------ |
+
+| `<window>` | width, height, x, y | `<window width="400" height="300" x="100" y="50" />` |
+
+| `<button>` | id, width, height   | `<button id="btn1" width="200">Click</button>`       |
+
+| `<img>`    | src, width          | `<img src="assets/logo.png" width="150" />`          |
+
+| `<div>`    | id                  | `<div id="container">...</div>`                      |
 
 ---
 
-## 🤝 Contributing
+## 📞 Support
 
-Contributions are welcome! Areas that need work:
-
-- [ ] More HTML tags support (table, ul/ol, etc.)
-- [ ] CSS parsing and application
-- [ ] Widget template system
-- [ ] Configuration GUI
-- [ ] Documentation improvements
+Problems or questions? Open an issue in the project repository.
 
 ---
 
-## 🙏 Acknowledgments
-
-- GTK4 team for the UI toolkit
-- `windows-rs` for Win32 bindings
-- `kuchiki` for HTML parsing
-- Rainmeter/Conky for inspiration
-
----
-
-**Built with ❤️ using Rust, GTK4, and Win32 API**
+**Happy widget building! 🎉**
