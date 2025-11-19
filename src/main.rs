@@ -33,10 +33,10 @@ unsafe extern "system" fn enum_windows_callback(hwnd: HWND, lparam: LPARAM) -> B
         if shelldll_hwnd.0 != 0 {
             let worker_w = FindWindowExW(HWND(0), hwnd, w!("WorkerW"), PCWSTR::null());
             *(lparam.0 as *mut isize) = worker_w.0;
-            return BOOL(0); // Stop enumeration
+            return BOOL(0); 
         }
     }
-    BOOL(1) // Continue enumeration
+    BOOL(1) 
 }
 
 #[cfg(target_os = "windows")]
@@ -47,7 +47,6 @@ unsafe fn get_desktop_workerw() -> Option<HWND> {
         return None;
     }
     
-    // Trigger creation of WorkerW window
     let mut result: usize = 0;
     let _ = SendMessageTimeoutW(
         progman,
@@ -113,8 +112,6 @@ fn set_as_desktop_widget(window: &ApplicationWindow, window_width: i32, window_h
                 println!("✓ Ventana: {}x{}", window_width, window_height);
                 println!("✓ Posición centrada: ({}, {})", x, y);
                 
-                // Cambiar estilo de ventana para que sea tipo desktop widget
-                // NO usamos SetParent, solo cambiamos los estilos
                 let style = GetWindowLongPtrW(hwnd, GWL_STYLE);
                 SetWindowLongPtrW(hwnd, GWL_STYLE, WS_POPUP.0 as isize);
                 
@@ -125,7 +122,6 @@ fn set_as_desktop_widget(window: &ApplicationWindow, window_width: i32, window_h
                     ex_style | WS_EX_NOACTIVATE.0 as isize | WS_EX_TOOLWINDOW.0 as isize
                 );
                 
-                // Posicionar en el fondo (debajo de otras ventanas pero visible)
                 let _ = SetWindowPos(
                     hwnd,
                     HWND_BOTTOM,
@@ -137,8 +133,6 @@ fn set_as_desktop_widget(window: &ApplicationWindow, window_width: i32, window_h
                 );
                 
                 println!("✓ Ventana configurada como desktop widget!");
-                println!("  - Posicionada debajo de otras ventanas");
-                println!("  - No se activará al hacer click");
             } else {
                 eprintln!("✗ Error: No se pudo obtener el HWND de la ventana");
             }
@@ -148,19 +142,15 @@ fn set_as_desktop_widget(window: &ApplicationWindow, window_width: i32, window_h
 
 #[cfg(target_os = "windows")]
 unsafe fn get_hwnd_from_surface(surface: &gtk4::gdk::Surface) -> Option<HWND> {
-    // Para GTK4 en Windows, necesitamos obtener el handle nativo
-    // Esto requiere acceso a la implementación Win32 de GDK
     
     use std::ffi::c_void;
     use gtk4::glib::object::IsA;
     use gtk4::glib::translate::ToGlibPtr;
     
-    // Función externa de GDK para obtener el handle de Windows
     extern "C" {
         fn gdk_win32_surface_get_handle(surface: *mut c_void) -> *mut c_void;
     }
     
-    // Convertir el surface de GTK a puntero usando el tipo correcto
     let surface_ptr: *mut gtk4::glib::gobject_ffi::GObject = surface.as_ptr() as *mut _;
     
     let handle = gdk_win32_surface_get_handle(surface_ptr as *mut c_void);

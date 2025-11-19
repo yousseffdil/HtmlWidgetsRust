@@ -6,7 +6,7 @@ A Rust-based desktop widget system that renders custom HTML-like markup as nativ
 
 - [Overview](#overview)
 - [Architecture](#architecture)
-- [Problem & Solution Journey](#problem--solution-journey)
+- [Problem &amp; Solution Journey](#problem--solution-journey)
 - [How It Works](#how-it-works)
 - [Usage](#usage)
 - [Technical Details](#technical-details)
@@ -43,7 +43,7 @@ graph TD
     E --> F[GTK Window]
     F --> G[Win32 Integration]
     G --> H[Desktop Widget]
-    
+  
     style A fill:#e1f5ff
     style H fill:#c8e6c9
 ```
@@ -57,7 +57,7 @@ graph LR
     B --> D[DomNode Tree]
     C --> E[GTK Widgets]
     A --> F[Win32 API Integration]
-    
+  
     style A fill:#fff9c4
     style B fill:#e1f5ff
     style C fill:#f3e5f5
@@ -92,18 +92,19 @@ sequenceDiagram
     participant GTK as GTK4 Window
     participant Win32 as Win32 API
     participant Desktop as Desktop Window
-    
+  
     GTK->>Win32: Create Window (HWND)
     Win32->>Desktop: Find Progman/WorkerW
     Win32->>GTK: SetParent(hwnd, desktop)
     GTK--xWin32: ❌ Rendering stops
-    
+  
     Note over GTK,Desktop: Problem: GTK loses rendering context
 ```
 
 **Problem:** When using `SetParent()` to make the GTK window a child of the desktop (Progman/WorkerW), GTK4 loses its rendering context and the window becomes invisible.
 
 **Why it failed:**
+
 - GTK4 expects full control over its window lifecycle
 - Changing the parent window breaks GTK's internal state management
 - The rendering pipeline gets disconnected from the display
@@ -117,7 +118,7 @@ graph TD
     C -->|Failed| D[Try RedrawWindow]
     D -->|Failed| E[Try Timer-based Refresh]
     E -->|Failed| F[Window Styles Only ✅]
-    
+  
     style A fill:#ffcdd2
     style B fill:#ffcdd2
     style C fill:#ffcdd2
@@ -127,21 +128,26 @@ graph TD
 ```
 
 #### Attempt 1: Force Redraw After SetParent
+
 ```rust
 SetParent(hwnd, desktop_hwnd);
 InvalidateRect(hwnd, None, true);
 UpdateWindow(hwnd);
 ```
+
 **Result:** ❌ Window still invisible
 
 #### Attempt 2: RedrawWindow with Flags
+
 ```rust
 RedrawWindow(hwnd, None, None, 
     RDW_INVALIDATE | RDW_UPDATENOW | RDW_ALLCHILDREN);
 ```
+
 **Result:** ❌ Window still invisible
 
 #### Attempt 3: Delayed SetParent
+
 ```rust
 // Show window first
 window.present();
@@ -150,6 +156,7 @@ glib::timeout_add_local_once(Duration::from_millis(500), || {
     set_as_desktop_widget(&window);
 });
 ```
+
 **Result:** ❌ Window appears briefly, then disappears
 
 ### ✅ Final Solution: Window Styles Without SetParent
@@ -168,7 +175,7 @@ graph TD
     E --> H
     F --> H
     G --> H
-    
+  
     style H fill:#c8e6c9
 ```
 
@@ -189,7 +196,7 @@ graph LR
     B --> F[Parse Body]
     F --> G[Recursive DOM Build]
     G --> H[DomNode Tree]
-    
+  
     style A fill:#e1f5ff
     style H fill:#c8e6c9
 ```
@@ -250,7 +257,7 @@ graph TD
     D --> G[Add to Parent]
     F --> G
     G --> H[Complete DomNode]
-    
+  
     style H fill:#c8e6c9
 ```
 
@@ -265,7 +272,7 @@ graph TD
     B -->|img| F[Create Image from File]
     B -->|div/body| G[Create Container Box]
     B -->|unknown| H[Debug Label]
-    
+  
     C --> I[GTK Widget]
     D --> I
     E --> J[Add Children Recursively]
@@ -273,19 +280,19 @@ graph TD
     G --> J
     H --> I
     J --> I
-    
+  
     style I fill:#c8e6c9
 ```
 
 #### Supported Tags
 
-| Tag | GTK Widget | Special Handling |
-|-----|------------|------------------|
-| `text` | `Label` | Direct text content |
-| `h1-h6` | `Label` | Pango markup for size/bold |
-| `p` | `Box(Vertical)` | Container for text |
-| `img` | `Image` | Loads from file path |
-| `div`, `body` | `Box(Vertical)` | Container with margins |
+| Tag               | GTK Widget        | Special Handling           |
+| ----------------- | ----------------- | -------------------------- |
+| `text`          | `Label`         | Direct text content        |
+| `h1-h6`         | `Label`         | Pango markup for size/bold |
+| `p`             | `Box(Vertical)` | Container for text         |
+| `img`           | `Image`         | Loads from file path       |
+| `div`, `body` | `Box(Vertical)` | Container with margins     |
 
 ### 4. Windows Integration
 
@@ -295,7 +302,7 @@ sequenceDiagram
     participant Win as GTK Window
     participant W32 as Win32 API
     participant Mon as Monitor
-    
+  
     App->>Win: Create Window
     Win->>Win: set_child(widgets)
     Win->>App: present()
@@ -327,7 +334,7 @@ SetWindowPos(hwnd, HWND_BOTTOM, x, y, w, h,
 
 ---
 
-## 🚀 Usage
+## 🚀 Usage	
 
 ### Installation
 
@@ -402,6 +409,7 @@ pub struct DomNode {
 ```
 
 **Key features:**
+
 - Separates `<config>` from `<body>` content
 - Filters config nodes from the rendered DOM
 - Recursively builds tree structure
@@ -422,6 +430,7 @@ match node.tag_name.as_str() {
 ```
 
 **Styling:**
+
 - Uses Pango markup for text formatting
 - CSS provider for global styles
 - Margin/padding through GTK properties
@@ -442,6 +451,7 @@ unsafe fn get_hwnd_from_surface(surface: &Surface) -> Option<HWND> {
 ```
 
 **Window positioning:**
+
 - Gets primary monitor dimensions
 - Calculates centered position
 - Accounts for taskbar (uses `rcWork` not `rcMonitor`)
@@ -458,19 +468,19 @@ graph TD
     A --> C[Dynamic Content Updates]
     A --> D[Event Handling]
     A --> E[Multiple Widgets]
-    
+  
     B --> F[Inline Styles]
     B --> G[External CSS Files]
-    
+  
     C --> H[Real-time Data]
     C --> I[Animations]
-    
+  
     D --> J[Click Handlers]
     D --> K[Keyboard Input]
-    
+  
     E --> L[Widget Manager]
     E --> M[Configuration UI]
-    
+  
     style A fill:#c8e6c9
     style B fill:#fff9c4
     style C fill:#fff9c4
@@ -481,26 +491,27 @@ graph TD
 ### Enhancement Ideas
 
 1. **CSS Styling**
+
    - Parse inline `style` attributes
    - Support external CSS files
    - CSS-to-GTK property mapping
-
 2. **Dynamic Content**
+
    - API for updating widget content
    - Timer-based refresh
    - System information integration (CPU, RAM, etc.)
-
 3. **Interactivity**
+
    - Remove `WS_EX_NOACTIVATE` for clickable widgets
    - Button handlers
    - Form inputs
-
 4. **Advanced Positioning**
+
    - Corner anchoring (top-left, bottom-right, etc.)
    - Multiple monitor support
    - Save/restore positions
-
 5. **Performance**
+
    - Lazy rendering
    - Partial updates
    - GPU acceleration investigation
@@ -512,21 +523,22 @@ graph TD
 ### Key Takeaways
 
 1. **GTK4 + Win32 Compatibility**
+
    - Direct parent manipulation breaks GTK rendering
    - Window styles are more compatible than parent changes
    - Always test native API calls with GTK
-
 2. **Rust FFI with Win32**
+
    - `windows-rs` crate provides safe wrappers
    - Still need `unsafe` for GTK interop
    - Type conversions need careful handling
-
 3. **HTML Parsing**
+
    - `kuchiki` is excellent for HTML parsing
    - Custom DOM structure gives flexibility
    - Filtering unwanted nodes post-parse works well
-
 4. **Desktop Widget Behavior**
+
    - `HWND_BOTTOM` keeps widget under normal windows
    - `WS_EX_TOOLWINDOW` hides from Alt+Tab and taskbar
    - `WS_EX_NOACTIVATE` prevents focus stealing
@@ -544,6 +556,7 @@ Contributions are welcome! Areas that need work:
 - [ ] Documentation improvements
 
 ---
+
 ## 🙏 Acknowledgments
 
 - GTK4 team for the UI toolkit
