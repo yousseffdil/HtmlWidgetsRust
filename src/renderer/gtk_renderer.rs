@@ -51,17 +51,36 @@ pub fn render_dom_to_gtk(node: &DomNode) -> Widget {
 
         "img" => {
             if let Some(src) = node.attributes.get("src") {
-                let img = Image::from_file(src);
-                
-                let size = node.attributes.get("width")
+                // Obtenemos el directorio del ejecutable
+                let exe_dir = std::env::current_exe()
+                    .unwrap()
+                    .parent()
+                    .unwrap()
+                    .to_path_buf();
+
+                // Directorio base donde están los widgets
+                let widget_dir = exe_dir.join("widget");
+
+                // Ruta absoluta de la imagen
+                let img_path = widget_dir.join(src);
+
+                let img = Image::from_file(&img_path);
+
+                let size = node.attributes
+                    .get("width")
                     .and_then(|w| w.parse::<i32>().ok())
                     .unwrap_or(350);
-                
+
                 img.set_pixel_size(size);
+
                 return img.upcast();
             }
-            return Label::new(Some("❌ Imagen sin src")).upcast();
+
+            // fallback UI
+            let fallback = Label::new(Some("⚠️ missing src"));
+            return fallback.upcast();
         }
+
 
         "div" | "body" | "id" | "span" => {
             let container = GtkBox::new(Orientation::Vertical, 10);
