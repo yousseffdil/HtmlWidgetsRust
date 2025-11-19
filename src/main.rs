@@ -5,7 +5,7 @@ use gtk4::glib;
 mod parser;
 mod renderer;
 
-use parser::html_parser::{parse_html, DomNode, WindowConfig};
+use parser::html_parser::{parse_html, DomNode, WindowConfig, WidgetDefinition};
 use renderer::gtk_renderer::render_dom_to_gtk;
 
 #[cfg(target_os = "windows")]
@@ -18,7 +18,6 @@ use windows::Win32::UI::WindowsAndMessaging::{
 #[cfg(target_os = "windows")]
 use windows::core::{PCWSTR, w};
 
-const HTML_SOURCE: &str = include_str!("html_source.html");
 
 #[cfg(target_os = "windows")]
 unsafe extern "system" fn enum_windows_callback(hwnd: HWND, lparam: LPARAM) -> BOOL {
@@ -73,7 +72,7 @@ unsafe fn get_desktop_workerw() -> Option<HWND> {
 }
 
 #[cfg(target_os = "windows")]
-fn set_as_desktop_widget(window: &ApplicationWindow, window_width: i32, window_height: i32) {
+fn set_as_desktop_widget(window: &ApplicationWindow, window_width: i32, window_height: i32, x_pos: Option<i32>, y_pos: Option<i32>) {
     use windows::Win32::UI::WindowsAndMessaging::{
         SetWindowPos, SWP_NOACTIVATE, SWP_SHOWWINDOW, HWND_BOTTOM,
         GetWindowLongPtrW, SetWindowLongPtrW, GWL_EXSTYLE, GWL_STYLE,
@@ -105,12 +104,13 @@ fn set_as_desktop_widget(window: &ApplicationWindow, window_width: i32, window_h
                 let screen_width = monitor_info.rcWork.right - monitor_info.rcWork.left;
                 let screen_height = monitor_info.rcWork.bottom - monitor_info.rcWork.top;
                 
-                let x = (screen_width - window_width) / 2;
-                let y = (screen_height - window_height) / 2;
+                // Usar posición especificada o centrar
+                let x = x_pos.unwrap_or((screen_width - window_width) / 2);
+                let y = y_pos.unwrap_or((screen_height - window_height) / 2);
                 
                 println!("✓ Pantalla: {}x{}", screen_width, screen_height);
                 println!("✓ Ventana: {}x{}", window_width, window_height);
-                println!("✓ Posición centrada: ({}, {})", x, y);
+                println!("✓ Posición: ({}, {})", x, y);
                 
                 let style = GetWindowLongPtrW(hwnd, GWL_STYLE);
                 SetWindowLongPtrW(hwnd, GWL_STYLE, WS_POPUP.0 as isize);
@@ -142,7 +142,6 @@ fn set_as_desktop_widget(window: &ApplicationWindow, window_width: i32, window_h
 
 #[cfg(target_os = "windows")]
 unsafe fn get_hwnd_from_surface(surface: &gtk4::gdk::Surface) -> Option<HWND> {
-    
     use std::ffi::c_void;
     use gtk4::glib::object::IsA;
     use gtk4::glib::translate::ToGlibPtr;
@@ -163,42 +162,104 @@ unsafe fn get_hwnd_from_surface(surface: &gtk4::gdk::Surface) -> Option<HWND> {
 }
 
 fn build_ui(app: &Application) {
-    let parse_result = parse_html(HTML_SOURCE);
-    let root_dom: DomNode;
-    let config: WindowConfig;
-
-    if let Some(result) = parse_result {
-        root_dom = result.body.clone();
-        config = result.config;
-        println!("✓ HTML parseado correctamente");
-        println!("  - Tamaño: {}x{}", config.width, config.height);
-        println!("  - Decoraciones: {}", config.decorations);
-        
-        // DEBUG: Ver estructura del DOM
-        println!("\n=== ESTRUCTURA DOM ===");
-        print_dom_tree(&root_dom, 0);
-        println!("======================\n");
-    } else {
-        root_dom = DomNode {
-            tag_name: "div".into(),
-            attributes: Default::default(),
-            children: vec![],
-            text_content: Some("Error al parsear HTML".into()),
-        };
-        config = WindowConfig::default();
-        eprintln!("✗ Error al parsear HTML");
+    use std::fs;
+    use std::path::Path;
+    
+    // Obtener el directorio del ejecutable
+    let exe_path = std::env::current_exe().expect("No se pudo obtener la ruta del ejecutable");
+    let exe_dir = exe_path.parent().expect("No se pudo obtener el directorio del ejecutable");
+    let widget_dir = exe_dir.join("widget");
+    
+    println!("🔍 Buscando widgets en: {:?}", widget_dir);
+    
+    if !widget_dir.exists() {
+        eprintln!("✗ Error: La carpeta 'widget' no existe en {:?}", exe_dir);
+        eprintln!("  Crea la carpeta y añade archivos .html dentro");
+        return;
     }
+    
+    let mut all_widgets = Vec::new();
+    
+    // Leer todos los archivos .html en la carpeta widget/
+    match fs::read_dir(&widget_dir) {
+        Ok(entries) => {
+            for entry in entries {
+                if let Ok(entry) = entry {
+                    let path = entry.path();
+                    
+                    if path.extension().and_then(|s| s.to_str()) == Some("html") {
+                        println!("📄 Cargando: {:?}", path.file_name().unwrap());
+                        
+                        match fs::read_to_string(&path) {
+                            Ok(html_content) => {
+                                // Parsear el HTML del archivo
+                                if let Some(mut widgets) = parse_html(&html_content) {
+                                    // Si el archivo no tiene ID de widget, usar el nombre del archivo
+                                    for widget in &mut widgets {
+                                        if widget.id == "main" {
+                                            let filename = path.file_stem()
+                                                .and_then(|s| s.to_str())
+                                                .unwrap_or("unnamed");
+                                            widget.id = filename.to_string();
+                                        }
+                                    }
+                                    
+                                    all_widgets.extend(widgets);
+                                    println!("  ✓ Parseado correctamente");
+                                } else {
+                                    eprintln!("  ✗ Error al parsear HTML");
+                                }
+                            }
+                            Err(e) => {
+                                eprintln!("  ✗ Error al leer archivo: {}", e);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        Err(e) => {
+            eprintln!("✗ Error al leer la carpeta widget/: {}", e);
+            return;
+        }
+    }
+    
+    if all_widgets.is_empty() {
+        eprintln!("✗ No se encontraron widgets válidos en la carpeta widget/");
+        eprintln!("  Asegúrate de tener archivos .html en la carpeta widget/");
+        return;
+    }
+    
+    println!("\n✓ Total de widgets encontrados: {}", all_widgets.len());
+    
+    for widget_def in all_widgets {
+        create_widget_window(app, &widget_def);
+    }
+}
 
+fn create_widget_window(app: &Application, widget_def: &WidgetDefinition) {
+    let config = &widget_def.config;
+    
+    println!("\n=== CREANDO WIDGET: {} ===", widget_def.id);
+    println!("  - Tamaño: {}x{}", config.width, config.height);
+    println!("  - Decoraciones: {}", config.decorations);
+    println!("  - Posición: {:?}", (config.x, config.y));
+    
+    // DEBUG: Ver estructura del DOM
+    println!("\n=== ESTRUCTURA DOM ===");
+    print_dom_tree(&widget_def.body, 0);
+    println!("======================\n");
+    
     let window = ApplicationWindow::builder()
         .application(app)
         .default_width(config.width as i32)
         .default_height(config.height as i32)
-        .decorated(false)
+        .decorated(config.decorations)
         .resizable(config.resizable)
         .build();
 
-    // IMPORTANTE: Configurar CSS para fondo visible
-    let css_provider = gtk4::CssProvider::new();
+    // Configurar CSS para fondo visible
+    let css_provider = CssProvider::new();
     css_provider.load_from_data(
         "window { background-color: white; }
          box { background-color: white; }
@@ -211,10 +272,10 @@ fn build_ui(app: &Application) {
         gtk4::STYLE_PROVIDER_PRIORITY_APPLICATION,
     );
 
-    let root_widget = render_dom_to_gtk(&root_dom);
+    let root_widget = render_dom_to_gtk(&widget_def.body);
     window.set_child(Some(&root_widget));
     
-    println!("✓ Ventana GTK creada");
+    println!("✓ Ventana GTK creada para widget '{}'", widget_def.id);
     println!("✓ Widget root renderizado: {:?}", root_widget.widget_name());
     
     // Mostrar la ventana PRIMERO, antes de hacer SetParent
@@ -225,12 +286,14 @@ fn build_ui(app: &Application) {
     {
         let win_width = config.width;
         let win_height = config.height;
+        let x_pos = config.x;
+        let y_pos = config.y;
         
         // Usar un timer para hacer el SetParent DESPUÉS de que GTK haya renderizado
         let window_clone = window.clone();
         glib::timeout_add_local_once(std::time::Duration::from_millis(500), move || {
             println!("→ Convirtiendo a desktop widget...");
-            set_as_desktop_widget(&window_clone, win_width as i32, win_height as i32);
+            set_as_desktop_widget(&window_clone, win_width as i32, win_height as i32, x_pos, y_pos);
             
             // Forzar queue_draw periódicamente
             let window_clone2 = window_clone.clone();
