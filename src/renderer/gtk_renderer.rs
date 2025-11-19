@@ -51,17 +51,14 @@ pub fn render_dom_to_gtk(node: &DomNode) -> Widget {
 
         "img" => {
             if let Some(src) = node.attributes.get("src") {
-                // Obtenemos el directorio del ejecutable
                 let exe_dir = std::env::current_exe()
                     .unwrap()
                     .parent()
                     .unwrap()
                     .to_path_buf();
 
-                // Directorio base donde están los widgets
                 let widget_dir = exe_dir.join("widget");
 
-                // Ruta absoluta de la imagen
                 let img_path = widget_dir.join(src);
 
                 let img = Image::from_file(&img_path);
@@ -76,7 +73,6 @@ pub fn render_dom_to_gtk(node: &DomNode) -> Widget {
                 return img.upcast();
             }
 
-            // fallback UI
             let fallback = Label::new(Some("⚠️ missing src"));
             return fallback.upcast();
         }
@@ -102,6 +98,7 @@ pub fn render_dom_to_gtk(node: &DomNode) -> Widget {
             
             return container.upcast();
         }
+        
         "button"=>{
            let button_text = if let Some(text_child) = node.children.first() {
             text_child.text_content.clone().unwrap_or_else(|| "Button".to_string())
