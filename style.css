@@ -1,6 +1,7 @@
 window {
   background-color: wheat;
-  border-radius: 5px;
+  border-radius: 0px;
+  border: 1px solid black;
 }
 box {
   background-color: white;

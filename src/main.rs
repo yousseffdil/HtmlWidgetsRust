@@ -222,10 +222,12 @@ fn create_widget_window(app: &Application, widget_def: &WidgetDefinition) {
             set_as_desktop_widget(&window_clone, win_width as i32, win_height as i32, x_pos, y_pos);
             
             let window_clone2 = window_clone.clone();
+            /*
             glib::timeout_add_local(std::time::Duration::from_millis(16), move || {
                 window_clone2.queue_draw();
                 glib::ControlFlow::Continue
             });
+            */
         });
     }
 }
