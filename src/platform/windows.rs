@@ -39,9 +39,9 @@ pub fn set_as_desktop_widget(
                 let x = x_pos.unwrap_or((screen_width - window_width) / 2);
                 let y = y_pos.unwrap_or((screen_height - window_height) / 2);
 
-                vprintln!("✓ Pantalla: {}x{}", screen_width, screen_height);
-                vprintln!("✓ Ventana: {}x{}", window_width, window_height);
-                vprintln!("✓ Posición: ({}, {})", x, y);
+                vprintln!("Pantalla: {}x{}", screen_width, screen_height);
+                vprintln!("Ventana: {}x{}", window_width, window_height);
+                vprintln!("Posición: ({}, {})", x, y);
 
                 let ex_style = GetWindowLongPtrW(hwnd, GWL_EXSTYLE);
                 SetWindowLongPtrW(
@@ -60,7 +60,7 @@ pub fn set_as_desktop_widget(
                     SWP_NOACTIVATE | SWP_SHOWWINDOW,
                 );
 
-                vprintln!("✓ Ventana configurada como desktop widget!");
+                vprintln!("Ventana configurada como desktop widget!");
             }
         }
     }
