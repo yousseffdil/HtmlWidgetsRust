@@ -28,10 +28,14 @@ pub fn set_as_desktop_widget(
                     ..Default::default()
                 };
                 GetMonitorInfoW(hmonitor, &mut monitor_info);
+
                 let screen_width = monitor_info.rcWork.right - monitor_info.rcWork.left;
                 let screen_height = monitor_info.rcWork.bottom - monitor_info.rcWork.top;
+                
+                // I do this?
                 let x = x_pos.unwrap_or((screen_width - window_width) / 2);
                 let y = y_pos.unwrap_or((screen_height - window_height) / 2);
+
                 vprintln!("Pantalla: {}x{}", screen_width, screen_height);
                 vprintln!("Ventana: {}x{}", window_width, window_height);
                 vprintln!("Posición: ({}, {})", x, y);

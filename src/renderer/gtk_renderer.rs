@@ -127,6 +127,29 @@ pub fn render_dom_to_gtk(node: &DomNode) -> Widget {
                 button.set_widget_name(id);
             }
 
+            if let Some(onclick_attr) = node.attributes.get("onclick") {
+                let accion = if onclick_attr.trim().is_empty() {
+                    if let Some(id) = node.attributes.get("id") {
+                        format!("Button '{}' clicked", id)
+                    } else {
+                        "Button clicked".to_string()
+                    }
+                } else {
+                    onclick_attr.clone()
+                };
+
+                button.connect_clicked(move |_| {
+                    println!("{}", accion);
+                });
+            } else {
+                if let Some(id) = node.attributes.get("id") {
+                    let msg = format!("Button '{}' clicked", id);
+                    button.connect_clicked(move |_| println!("{}", msg));
+                } else {
+                    button.connect_clicked(|_| println!("Button clicked"));
+                }
+            }
+            
             return button.upcast();
       
         }

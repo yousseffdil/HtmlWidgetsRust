@@ -2,8 +2,8 @@ use gtk4::prelude::*;
 use gtk4::{Application, ApplicationWindow, CssProvider, STYLE_PROVIDER_PRIORITY_APPLICATION};
 
 mod parser;
+mod platform;
 mod renderer;
-mod platform; 
 
 use parser::html_parser::{parse_html, DomNode, WidgetDefinition};
 use renderer::gtk_renderer::render_dom_to_gtk;
@@ -13,12 +13,13 @@ use std::sync::atomic::{AtomicBool, Ordering};
 mod utils;
 use utils::VERBOSE;
 
-
 fn build_ui(app: &Application) {
     use std::fs;
 
     let exe_path = std::env::current_exe().expect("No se pudo obtener la ruta del ejecutable");
-    let exe_dir = exe_path.parent().expect("No se pudo obtener el directorio del ejecutable");
+    let exe_dir = exe_path
+        .parent()
+        .expect("No se pudo obtener el directorio del ejecutable");
     let widget_dir = exe_dir.join("widget");
 
     vprintln!("Buscando widgets en: {:?}", widget_dir);
@@ -45,7 +46,10 @@ fn build_ui(app: &Application) {
                         if let Some(mut widgets) = parse_html(&html_content) {
                             for widget in &mut widgets {
                                 if widget.id == "main" {
-                                    let filename = path.file_stem().and_then(|s| s.to_str()).unwrap_or("unnamed");
+                                    let filename = path
+                                        .file_stem()
+                                        .and_then(|s| s.to_str())
+                                        .unwrap_or("unnamed");
                                     widget.id = filename.to_string();
                                 }
                             }
@@ -125,7 +129,7 @@ fn create_widget_window(app: &Application, widget_def: &WidgetDefinition) {
         x_pos.map(|v| v as i32),
         y_pos.map(|v| v as i32),
     );
-    }
+}
 
 fn print_dom_tree(node: &DomNode, level: usize) {
     let indent = "  ".repeat(level);
