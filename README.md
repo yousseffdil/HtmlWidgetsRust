@@ -1,3 +1,6 @@
+# IMPORTANT
+If you wanna use this lib, recomended to install the <a href="https://marketplace.visualstudio.com/items?itemName=YTMLsupport.ytml-language-support">YTML SUPPORT EXTENSIN</a>
+
 # 🎨 Desktop Widgets - Documentation
 
 Customizable desktop widget system using Rust, GTK4, and simplified YTML markup.
