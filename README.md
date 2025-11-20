@@ -556,19 +556,6 @@ export DISPLAY=:0
 ```
 
 ---
-
-## 🚀 Next Steps
-
-### Planned Features
-
-* [ ] Custom CSS for styling
-* [ ] JavaScript for interactivity
-* [ ] Real-time updates
-* [ ] Event system for buttons
-* [ ] More HTML elements (input, textarea, etc.)
-* [ ] Animations and transitions
-* [ ] Predefined themes
-
 ### Contributing
 
 Have ideas or improvements? Contributions are welcome!

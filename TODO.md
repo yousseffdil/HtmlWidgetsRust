@@ -36,3 +36,12 @@
 - Make an GUI to manage the widgets
   - [ ] Refactor the code need a frame where it shows all the widgets founded in the `widget` folder
   - [ ] Activate or deactivate widgets
+
+# PLANED
+- [ ] Custom CSS for styling
+- [ ] JavaScript for interactivity
+- [ ] Real-time updates
+- [ ] Event system for buttons
+- [ ] More HTML elements (input, textarea, etc.)
+- [ ] Animations and transitions
+- [ ] Predefined themes
