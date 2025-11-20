@@ -36,3 +36,7 @@
 
   - [ ] For tasks like window positioning or monitoring, do them once or at low frequency.
   - [ ] Avoid repeating operations every frame unnecessarily.
+
+- Make an GUI to manage the widgets
+  - [ ] Refactor the code need a frame where it shows all the widgets founded in the `widget` folder
+  - [ ] Activate or deactivate widgets
