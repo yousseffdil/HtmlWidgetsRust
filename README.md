@@ -1,18 +1,17 @@
-
 # 🎨 Desktop Widgets - Documentation
 
-Customizable desktop widget system using Rust, GTK4, and simplified HTML.
+Customizable desktop widget system using Rust, GTK4, and simplified YTML markup.
 
 ## 📋 Table of Contents
 
-1. [Installation](https://claude.ai/chat/506788d7-0c41-4e28-adba-3eaaf2644247#installation)
-2. [Project Structure](https://claude.ai/chat/506788d7-0c41-4e28-adba-3eaaf2644247#project-structure)
-3. [Create Your First Widget](https://claude.ai/chat/506788d7-0c41-4e28-adba-3eaaf2644247#create-your-first-widget)
-4. [HTML Syntax](https://claude.ai/chat/506788d7-0c41-4e28-adba-3eaaf2644247#html-syntax)
-5. [Window Configuration](https://claude.ai/chat/506788d7-0c41-4e28-adba-3eaaf2644247#window-configuration)
-6. [Supported Tags](https://claude.ai/chat/506788d7-0c41-4e28-adba-3eaaf2644247#supported-tags)
-7. [Complete Examples](https://claude.ai/chat/506788d7-0c41-4e28-adba-3eaaf2644247#complete-examples)
-8. [Troubleshooting](https://claude.ai/chat/506788d7-0c41-4e28-adba-3eaaf2644247#troubleshooting)
+1. [Installation](#installation)
+2. [Project Structure](#project-structure)
+3. [Create Your First Widget](#create-your-first-widget)
+4. [YTML Format](#ytml-format)
+5. [Window Configuration](#window-configuration)
+6. [Supported Tags](#supported-tags)
+7. [Complete Examples](#complete-examples)
+8. [Troubleshooting](#troubleshooting)
 
 ---
 
@@ -20,32 +19,23 @@ Customizable desktop widget system using Rust, GTK4, and simplified HTML.
 
 ### Prerequisites
 
-***Rust** (version 1.70 or higher)
-
-***GTK4** installed on your system
-
-* Windows: [GTK4 for Windows](https://gtk.org/)
-* Linux: `sudo apt install libgtk-4-dev`
-* macOS: `brew install gtk4`
+* **Rust** (version 1.70 or higher)
+* **GTK4** installed on your system
+    * Windows: [GTK4 for Windows](https://gtk.org/)
+    * Linux: `sudo apt install libgtk-4-dev`
+    * macOS: `brew install gtk4`
 
 ### Build the Project
 
 ```bash
-
 # Clone or download the project
-
-cdyour_project
-
+cd your_project
 
 # Build in development mode
-
-cargobuild
-
+cargo build
 
 # Build in release mode (optimized)
-
-cargobuild--release
-
+cargo build --release
 ```
 
 ### Folder Structure
@@ -53,25 +43,15 @@ cargobuild--release
 After building, create the `widget/` folder next to the executable:
 
 ```
-
 your_project/
-
 ├── widget/              ← Create this folder
-
-│   ├── widget1.html     ← Your widgets here
-
-│   ├── widget2.html
-
+│   ├── widget1.ytml     ← Your widgets here
+│   ├── widget2.ytml
 │   └── assets/          ← Images and resources
-
 │       └── rust.png
-
 └── target/
-
     └── release/
-
         └── your_program.exe
-
 ```
 
 ---
@@ -79,120 +59,119 @@ your_project/
 ## 📁 Project Structure
 
 ```
-
 project/
-
 ├── src/
-
 │   ├── main.rs                    # Main entry point
-
 │   ├── parser/
-
 │   │   ├── mod.rs
-
-│   │   └── html_parser.rs         # HTML parser
-
+│   │   └── ytml_parser.rs         # YTML parser
 │   └── renderer/
-
 │       ├── mod.rs
-
 │       └── gtk_renderer.rs        # GTK renderer
-
 │
-
 ├── widget/                         # 📂 YOUR WIDGETS HERE
-
-│   ├── clock.html                 # Clock widget
-
-│   ├── notes.html                 # Notes widget
-
-│   ├── weather.html               # Weather widget
-
+│   ├── clock.ytml                 # Clock widget
+│   ├── notes.ytml                 # Notes widget
+│   ├── weather.ytml               # Weather widget
 │   └── assets/                    # Resources (images, etc.)
-
 │       ├── icon.png
-
 │       └── background.jpg
-
 │
-
 ├── Cargo.toml
-
 └── README.md
-
 ```
 
 ---
 
 ## 🎯 Create Your First Widget
 
-### 1. Create the HTML file
+### 1. Create the YTML file
 
-Create `widget/hello.html`:
+Create `widget/hello.ytml`:
 
-```html
-
+```ytml
 <config>
-
-    <windowwidth="300"height="200" />
-
-    <decorationsenabled="false" />
-
-    <resizableenabled="false" />
-
+    <window width="300" height="200" />
+    <decorations enabled="false" />
+    <resizable enabled="false" />
 </config>
 
-
 <body>
-
     <div>
-
         <h1>Hello World!</h1>
-
         <p>My first desktop widget</p>
-
         <button>Click Me!</button>
-
     </div>
-
 </body>
-
 ```
 
 ### 2. Run the application
 
 ```bash
-
-cargorun
-
+cargo run
 ```
 
 Your widget will appear on the desktop! 🎉
 
 ---
 
-## 📝 HTML Syntax
+## 📝 YTML Format
 
-### Basic Structure
+### What is YTML?
 
-Every widget has two sections:
+**YTML** (Yet another Markup Language) is a custom internal format specifically designed for desktop widget definitions. It combines the simplicity of HTML with features optimized for GTK4 rendering.
 
-```html
+### Key Features of YTML
 
+**Simplified Structure**: Unlike HTML, YTML uses a more restrictive and uniform syntax to ensure predictable parsing.
+
+**Built-in Validation**: The YTML parser automatically validates the structure and properly closes incomplete tags.
+
+**Typed Attributes**: Attributes in YTML always use quotes and are validated according to their type (number, boolean, string).
+
+**Whitespace Tolerant**: YTML ignores extra whitespace, allowing for better code readability.
+
+**GTK4 Optimized**: Each YTML element maps directly to a corresponding GTK4 widget, eliminating unnecessary conversions.
+
+### Basic YTML Syntax
+
+```ytml
+<!-- Comments in YTML -->
+<element attribute="value">
+    <!-- Nested content -->
+</element>
+
+<!-- Self-closing tags -->
+<element attribute="value" />
+```
+
+### Required Structure
+
+Every YTML file must contain exactly two root sections:
+
+```ytml
 <config>
-
-    <!-- Window configuration -->
-
+    <!-- Window configuration and behavior -->
 </config>
 
-
 <body>
-
-    <!-- Widget content -->
-
+    <!-- Widget visual content -->
 </body>
-
 ```
+
+### YTML Validation Rules
+
+The YTML specification implements the following rules:
+
+**Recognized Tags**: Only predefined tags are accepted (`config`, `window`, `decorations`, `transparent`, `resizable`, `body`, `div`, `h1-h6`, `p`, `button`, `img`).
+
+**Correct Nesting**: The `<config>` section can only contain configuration tags (`<window>`, `<decorations>`, `<transparent>`, `<resizable>`). The `<body>` section can only contain visual elements (`<div>`, `<h1-h6>`, `<p>`, `<button>`, `<img>`).
+
+**Mandatory Attributes**: Certain elements require specific attributes (e.g., `<img>` requires `src`).
+
+**Boolean Values**: Boolean attributes must be exactly `"true"` or `"false"` (in quotes).
+
+**Numeric Values**: Attributes expecting numbers must be valid integers.
 
 ---
 
@@ -206,80 +185,58 @@ Defines how the widget window behaves and looks.
 
 Window size and position:
 
-```html
-
-<windowwidth="400"height="300" />
-
+```ytml
+<window width="400" height="300" />
 ```
 
 With specific position:
 
-```html
-
-<windowwidth="400"height="300"x="100"y="100" />
-
+```ytml
+<window width="400" height="300" x="100" y="100" />
 ```
 
 **Attributes:**
 
-*`width`: Width in pixels (default: 800)
-
-*`height`: Height in pixels (default: 600)
-
-*`x`: Horizontal position (optional, default: centered)
-
-*`y`: Vertical position (optional, default: centered)
+* `width`: Width in pixels (default: 800)
+* `height`: Height in pixels (default: 600)
+* `x`: Horizontal position (optional, default: centered)
+* `y`: Vertical position (optional, default: centered)
 
 #### `<decorations>`
 
 Show/hide window borders:
 
-```html
-
-<decorationsenabled="false" />  <!-- No borders or buttons -->
-
-<decorationsenabled="true" />   <!-- With borders and buttons -->
-
+```ytml
+<decorations enabled="false" />  <!-- No borders or buttons -->
+<decorations enabled="true" />   <!-- With borders and buttons -->
 ```
 
 #### `<transparent>`
 
 Enable transparency (experimental):
 
-```html
-
-<transparentenabled="true" />
-
+```ytml
+<transparent enabled="true" />
 ```
 
 #### `<resizable>`
 
 Allow window resizing:
 
-```html
-
-<resizableenabled="true" />   <!-- Resizable -->
-
-<resizableenabled="false" />  <!-- Fixed size -->
-
+```ytml
+<resizable enabled="true" />   <!-- Resizable -->
+<resizable enabled="false" />  <!-- Fixed size -->
 ```
 
 ### Complete Config Example
 
-```html
-
+```ytml
 <config>
-
-    <windowwidth="500"height="400"x="50"y="50" />
-
-    <decorationsenabled="false" />
-
-    <transparentenabled="false" />
-
-    <resizableenabled="true" />
-
+    <window width="500" height="400" x="50" y="50" />
+    <decorations enabled="false" />
+    <transparent enabled="false" />
+    <resizable enabled="true" />
 </config>
-
 ```
 
 ---
@@ -288,23 +245,16 @@ Allow window resizing:
 
 ### Headers
 
-```html
-
+```ytml
 <h1>Main Title</h1>
-
 <h2>Subtitle</h2>
-
 <h3>Header Level 3</h3>
-
 <h4>Header Level 4</h4>
-
 <h5>Header Level 5</h5>
-
 <h6>Header Level 6</h6>
-
 ```
 
-**Font sizes:**
+**Font Sizes:**
 
 * h1: 32px
 * h2: 28px
@@ -315,72 +265,52 @@ Allow window resizing:
 
 ### Paragraphs
 
-```html
-
+```ytml
 <p>This is a normal text paragraph.</p>
-
 ```
 
 ### Images
 
-```html
-
-<imgsrc="assets/logo.png"width="200"/>
-
+```ytml
+<img src="assets/logo.png" width="200" />
 ```
 
 **Attributes:**
 
-*`src`: Relative path to executable folder (required)
-
-*`width`: Width in pixels (default: 350)
+* `src`: Relative path to executable folder (required)
+* `width`: Width in pixels (default: 350)
 
 ### Buttons
 
-```html
-
+```ytml
 <button>Click Me!</button>
-
-<buttonid="btn-primary"width="200">Wide Button</button>
-
-<buttonid="btn-secondary"height="50">Tall Button</button>
-
+<button id="btn-primary" width="200">Wide Button</button>
+<button id="btn-secondary" height="50">Tall Button</button>
 ```
 
 **Attributes:**
 
-*`id`: Unique identifier (optional)
-
-*`width`: Width in pixels (optional)
-
-*`height`: Height in pixels (optional)
+* `id`: Unique identifier (optional)
+* `width`: Width in pixels (optional)
+* `height`: Height in pixels (optional)
 
 ### Containers
 
-```html
-
+```ytml
 <div>
-
     <h1>Group of elements</h1>
-
     <p>Containers group other elements</p>
-
 </div>
 
-
-<divid="sidebar">
-
+<div id="sidebar">
     <button>Button 1</button>
-
     <button>Button 2</button>
-
 </div>
-
 ```
 
 **Attributes:**
 
-*`id`: Unique identifier (optional)
+* `id`: Unique identifier (optional)
 
 **Features:**
 
@@ -394,196 +324,113 @@ Allow window resizing:
 
 ### Simple Clock Widget
 
-`widget/clock.html`:
+`widget/clock.ytml`:
 
-```html
-
+```ytml
 <config>
-
-    <windowwidth="250"height="150"x="20"y="20" />
-
-    <decorationsenabled="false" />
-
-    <resizableenabled="false" />
-
+    <window width="250" height="150" x="20" y="20" />
+    <decorations enabled="false" />
+    <resizable enabled="false" />
 </config>
 
-
 <body>
-
-    <divid="clock-container">
-
+    <div id="clock-container">
         <h1>🕐 12:34</h1>
-
         <p>Tuesday, Nov 19 2024</p>
-
     </div>
-
 </body>
-
 ```
 
 ### Notes Widget
 
-`widget/notes.html`:
+`widget/notes.ytml`:
 
-```html
-
+```ytml
 <config>
-
-    <windowwidth="350"height="400"x="300"y="20" />
-
-    <decorationsenabled="false" />
-
-    <resizableenabled="true" />
-
+    <window width="350" height="400" x="300" y="20" />
+    <decorations enabled="false" />
+    <resizable enabled="true" />
 </config>
 
-
 <body>
-
     <div>
-
         <h2>📝 Quick Notes</h2>
-
-  
-
-        <divid="note-1">
-
+        
+        <div id="note-1">
             <h4>Shopping</h4>
-
             <p>- Milk<br/>- Bread<br/>- Eggs</p>
-
         </div>
-
-  
-
-        <divid="note-2">
-
+        
+        <div id="note-2">
             <h4>To-Do</h4>
-
             <p>- Finish project<br/>- Call doctor</p>
-
         </div>
-
-  
-
-        <buttonwidth="300">Add Note</button>
-
+        
+        <button width="300">Add Note</button>
     </div>
-
 </body>
-
 ```
 
 ### Profile Widget
 
-`widget/profile.html`:
+`widget/profile.ytml`:
 
-```html
-
+```ytml
 <config>
-
-    <windowwidth="300"height="350"x="700"y="20" />
-
-    <decorationsenabled="false" />
-
-    <resizableenabled="false" />
-
+    <window width="300" height="350" x="700" y="20" />
+    <decorations enabled="false" />
+    <resizable enabled="false" />
 </config>
 
-
 <body>
-
-    <divid="profile">
-
+    <div id="profile">
         <h2>👤 My Profile</h2>
-
-  
-
-        <imgsrc="assets/avatar.png"width="150"/>
-
-  
-
+        
+        <img src="assets/avatar.png" width="150" />
+        
         <h3>John Doe</h3>
-
         <p>Software Developer</p>
-
-  
-
-        <divid="buttons">
-
-            <buttonwidth="250">Edit Profile</button>
-
-            <buttonwidth="250">Settings</button>
-
+        
+        <div id="buttons">
+            <button width="250">Edit Profile</button>
+            <button width="250">Settings</button>
         </div>
-
     </div>
-
 </body>
-
 ```
 
 ### Dashboard Widget
 
-`widget/dashboard.html`:
+`widget/dashboard.ytml`:
 
-```html
-
+```ytml
 <config>
-
-    <windowwidth="600"height="500"x="100"y="100" />
-
-    <decorationsenabled="false" />
-
-    <resizableenabled="true" />
-
+    <window width="600" height="500" x="100" y="100" />
+    <decorations enabled="false" />
+    <resizable enabled="true" />
 </config>
 
-
 <body>
-
     <div>
-
         <h1>📊 Dashboard</h1>
-
-  
-
-        <divid="stats">
-
+        
+        <div id="stats">
             <h3>Today's Stats</h3>
-
             <p>• 45 tasks completed</p>
-
             <p>• 3 hours of coding</p>
-
             <p>• 12 commits</p>
-
         </div>
-
-  
-
-        <divid="quick-actions">
-
+        
+        <div id="quick-actions">
             <h3>Quick Actions</h3>
-
-            <buttonwidth="250">New Task</button>
-
-            <buttonwidth="250">View Calendar</button>
-
-            <buttonwidth="250">Open Project</button>
-
+            <button width="250">New Task</button>
+            <button width="250">View Calendar</button>
+            <button width="250">Open Project</button>
         </div>
-
-  
-
-        <imgsrc="assets/chart.png"width="500"/>
-
+        
+        <img src="assets/chart.png" width="500" />
     </div>
-
 </body>
-
 ```
 
 ---
@@ -595,10 +442,10 @@ Allow window resizing:
 **Solution:**
 
 1. Verify that the `widget/` folder exists next to the executable
-2. Make sure files have `.html` extension
-3. Check that HTML files are valid
+2. Make sure files have `.ytml` extension
+3. Check that YTML files are valid
 
-### ❌ "Error parsing HTML"
+### ❌ "Error parsing YTML"
 
 **Common causes:**
 
@@ -608,12 +455,11 @@ Allow window resizing:
 
 **Correct format:**
 
-```html
-
-<buttonwidth="200">Text</button>  ✅
-
-<buttonwidth=200>Text</button>    ❌
-
+```ytml
+<button width="200">Text</button>  ✅
+<button width=200>Text</button>    ❌
+<window width="400" height="300" /> ✅
+<window width="400"height="300" /> ❌
 ```
 
 ### ❌ "Image without src" or image not showing
@@ -624,27 +470,18 @@ Allow window resizing:
 2. The `assets/` folder must be next to the executable
 
 ```
-
 target/release/
-
 ├── your_program.exe
-
 ├── widget/
-
-│   └── my_widget.html
-
+│   └── my_widget.ytml
 └── assets/              ← Images go here
-
     └── image.png
-
 ```
 
-In HTML use:
+In YTML use:
 
-```html
-
-<imgsrc="assets/image.png"width="200"/>
-
+```ytml
+<img src="assets/image.png" width="200" />
 ```
 
 ### ❌ Widget doesn't appear on desktop (Windows)
@@ -665,9 +502,7 @@ In HTML use:
 **On Linux/WSL:**
 
 ```bash
-
-exportDISPLAY=:0
-
+export DISPLAY=:0
 ```
 
 ### 💡 Widget shows but doesn't update
@@ -676,7 +511,7 @@ exportDISPLAY=:0
 
 * Widgets are static by default
 * For dynamic content, you'll need to modify the Rust code
-* Restart the application after editing HTML files
+* Restart the application after editing YTML files
 
 ---
 
@@ -689,54 +524,35 @@ exportDISPLAY=:0
 
 ### 2. **Use descriptive IDs**
 
-```html
-
-<buttonid="save-button">Save</button>
-
-<divid="notification-panel">...</div>
-
+```ytml
+<button id="save-button">Save</button>
+<div id="notification-panel">...</div>
 ```
 
 ### 3. **Organize your content**
 
-```html
-
-<divid="header">
-
+```ytml
+<div id="header">
     <h1>Title</h1>
-
 </div>
 
-
-<divid="content">
-
+<div id="content">
     <p>Main content</p>
-
 </div>
 
-
-<divid="footer">
-
+<div id="footer">
     <button>Action</button>
-
 </div>
-
 ```
 
 ### 4. **Group related elements**
 
-```html
-
-<divid="button-group">
-
+```ytml
+<div id="button-group">
     <button>Option 1</button>
-
     <button>Option 2</button>
-
     <button>Option 3</button>
-
 </div>
-
 ```
 
 ---
@@ -764,52 +580,33 @@ Have ideas or improvements? Contributions are welcome!
 ### Execution Commands
 
 ```bash
-
-cargorun                    # Development
-
-cargobuild--release        # Production
-
+cargo run                    # Development
+cargo build --release        # Production
 ./target/release/program     # Execute
-
 ```
 
 ### Minimal Widget Structure
 
-```html
-
+```ytml
 <config>
-
-    <windowwidth="300"height="200" />
-
-    <decorationsenabled="false" />
-
+    <window width="300" height="200" />
+    <decorations enabled="false" />
 </config>
 
-
 <body>
-
     <div>
-
         <h1>My Widget</h1>
-
     </div>
-
 </body>
-
 ```
 
 ### Most Used Attributes
 
 | Tag          | Attributes          | Example                                                |
-
 | ------------ | ------------------- | ------------------------------------------------------ |
-
 | `<window>` | width, height, x, y | `<window width="400" height="300" x="100" y="50" />` |
-
 | `<button>` | id, width, height   | `<button id="btn1" width="200">Click</button>`       |
-
 | `<img>`    | src, width          | `<img src="assets/logo.png" width="150" />`          |
-
 | `<div>`    | id                  | `<div id="container">...</div>`                      |
 
 ---
