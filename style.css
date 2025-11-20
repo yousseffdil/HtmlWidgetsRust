@@ -1,13 +1,10 @@
 window {
     background-color: white;
-    border-radius: 0px;
     margin: 10px;
+    border-radius: 0px;
+    border: 1px #ccc solid;
+    padding: 10px;
 }
-
-box {
-    background-color: white;
-}
-
 label {
     color: black;
 }

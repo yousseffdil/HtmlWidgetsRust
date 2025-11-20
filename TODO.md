@@ -5,9 +5,7 @@
   - [X] Stop calling queue_draw() on a 16ms timer unless there are dynamic updates or animations.
   - [X] Only redraw when the DOM changes or user interacts.
 - Avoid cloning large data structures
-  - [ ] Do not clone the entire DOM (root_dom.clone()) if not needed.
-- Implement lazy rendering of widgets
-  - [ ] Render only visible or important parts of the DOM.
+  - [x] Do not clone the entire DOM (root_dom.clone()) if not needed.
   - [ ] Avoid creating GTK widgets for empty nodes, comments, or invisible elements.
 - Reuse widgets when updating the DOM
   - [ ] Instead of recreating widgets on updates, update existing widgets’ content to save memory.
@@ -40,8 +38,10 @@
 # PLANED
 - [ ] Custom CSS for styling
 - [ ] JavaScript for interactivity
-- [ ] Real-time updates
+- [ ] Real-time updates ❌
 - [ ] Event system for buttons
 - [ ] More HTML elements (input, textarea, etc.)
 - [ ] Animations and transitions
 - [ ] Predefined themes
+- [ ] Create an VSCODE extension for an *.ytml files
+  - Snippes & more...
