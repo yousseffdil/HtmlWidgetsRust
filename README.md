@@ -1,5 +1,6 @@
-# IMPORTANT
-If you wanna use this lib, recomended to install the <a href="https://marketplace.visualstudio.com/items?itemName=YTMLsupport.ytml-language-support">YTML SUPPORT EXTENSIN</a>
+# ‼️‼️ IMPORTANT
+If you want to use this library, it is recommended to install the <a href="https://marketplace.visualstudio.com/items?itemName=YTMLsupport.ytml-language-support">YTML Support Extension</a>.
+
 
 # 🎨 Desktop Widgets - Documentation
 
