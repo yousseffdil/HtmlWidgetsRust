@@ -4,7 +4,6 @@
     <resizable enabled="false" />
     <transparent enabled="false" />
 </config>
-
 <body>
     <h1>Hello World!!</h1>
     <p>This is an example text and mock data</p>
