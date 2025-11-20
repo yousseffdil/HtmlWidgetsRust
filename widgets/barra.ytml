@@ -17,9 +17,5 @@
             <button id="btn-clock" width="50">🕐</button>
             <button id="btn-weather" width="50">🌤️</button>
         </div>
-
-        <div id="taskbar-info">
-            <p>Quick Access Taskbar</p>
-        </div>
     </div>
 </body>
