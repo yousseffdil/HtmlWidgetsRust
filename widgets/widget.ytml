@@ -6,8 +6,9 @@
 
 <body>
     <div>
-        <h1>YFB</h1>
-        <p>Test Widget</p>
-        <button width="400" height="300" id="button" onclick>Click Me!</button>
+        <h1>Widget 1</h1>
+        <p>This is the first widget!!!</p>
+        <button>Click Me!</button>
+        <img src="assets/rust.png"/>
     </div>
 </body>
