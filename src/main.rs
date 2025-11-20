@@ -16,34 +16,36 @@ use utils::VERBOSE;
 fn build_ui(app: &Application) {
     use std::fs;
 
-    let exe_path = std::env::current_exe().expect("No se pudo obtener la ruta del ejecutable");
-    let exe_dir = exe_path
-        .parent()
-        .expect("No se pudo obtener el directorio del ejecutable");
-    let widget_dir = exe_dir.join("widget");
+    let project_root = std::env::current_dir().expect("No se pudo obtener el directorio actual del proyecto");
+
+    let widget_dir = project_root.join("widgets");
+
 
     vprintln!("Buscando widgets en: {:?}", widget_dir);
 
     if !widget_dir.exists() {
-        eprintln!("Error: La carpeta 'widget' no existe en {:?}", exe_dir);
-        eprintln!("  Crea la carpeta y añade archivos .html dentro");
+        eprintln!("✗ Error: La carpeta 'widgets/' no existe en {:?}", project_root);
+        eprintln!("  Crea la carpeta y añade archivos *.ytml dentro");
         return;
     }
 
     let mut all_widgets = Vec::new();
 
+
     for entry in fs::read_dir(&widget_dir).unwrap_or_else(|e| {
-        eprintln!("✗ Error al leer la carpeta widget/: {}", e);
+        eprintln!("✗ Error al leer carpeta widgets/: {}", e);
         std::process::exit(1);
     }) {
         if let Ok(entry) = entry {
             let path = entry.path();
-            if path.extension().and_then(|s| s.to_str()) == Some("html") {
+
+            if path.extension().and_then(|s| s.to_str()) == Some("ytml") {
                 vprintln!("Cargando: {:?}", path.file_name().unwrap());
 
                 match fs::read_to_string(&path) {
-                    Ok(html_content) => {
-                        if let Some(mut widgets) = parse_html(&html_content) {
+                    Ok(ytml_content) => {
+                        if let Some(mut widgets) = parse_html(&ytml_content) {
+                            // Si el widget tiene id="main", usar el nombre del archivo como ID
                             for widget in &mut widgets {
                                 if widget.id == "main" {
                                     let filename = path
@@ -53,14 +55,15 @@ fn build_ui(app: &Application) {
                                     widget.id = filename.to_string();
                                 }
                             }
+
                             all_widgets.extend(widgets);
-                            vprintln!("  Parseado correctamente");
+                            vprintln!("  ✓ Parseado correctamente");
                         } else {
-                            eprintln!("  Error al parsear HTML");
+                            eprintln!("  ✗ Error al parsear YTML");
                         }
                     }
                     Err(e) => {
-                        eprintln!("  Error al leer archivo: {}", e);
+                        eprintln!("  ✗ Error al leer archivo: {}", e);
                     }
                 }
             }
@@ -68,7 +71,7 @@ fn build_ui(app: &Application) {
     }
 
     if all_widgets.is_empty() {
-        eprintln!("No se encontraron widgets válidos en la carpeta widget/");
+        eprintln!("✗ No se encontraron widgets válidos en widgets/*.ytml");
         return;
     }
 
