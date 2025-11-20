@@ -1,0 +1,25 @@
+<config>
+    <window width="60" height="1200" x="0" y="0" />
+    <decorations enabled="false" />
+    <resizable enabled="false" />
+    <transparent enabled="false" />
+</config>
+
+<body>
+    <div id="taskbar-container">
+        <div id="taskbar-apps">
+            <button id="btn-home" width="50">🏠</button>
+            <button id="btn-chrome" width="50">🌐</button>
+            <button id="btn-notes" width="50">📝</button>
+            <button id="btn-files" width="50">📁</button>
+            <button id="btn-calculator" width="50">🧮</button>
+            <button id="btn-settings" width="50">⚙️</button>
+            <button id="btn-clock" width="50">🕐</button>
+            <button id="btn-weather" width="50">🌤️</button>
+        </div>
+
+        <div id="taskbar-info">
+            <p>Quick Access Taskbar</p>
+        </div>
+    </div>
+</body>
