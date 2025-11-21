@@ -4,6 +4,7 @@ use gtk4::{Application, ApplicationWindow, CssProvider, STYLE_PROVIDER_PRIORITY_
 mod parser;
 mod platform;
 mod renderer;
+mod gui;
 
 use parser::html_parser::{parse_html, DomNode, WidgetDefinition};
 use renderer::gtk_renderer::render_dom_to_gtk;
@@ -159,10 +160,22 @@ fn main() {
         args.remove(pos);
     }
 
+    let use_manager = args.iter().any(|arg| arg == "--manager" || arg == "-m");
+    if use_manager {
+        args.retain(|arg| arg != "--manager" && arg != "-m");
+    }
+
     let app = Application::builder()
         .application_id("htmlwidgets.rust.gtk")
         .build();
 
-    app.connect_activate(build_ui);
+    if use_manager {
+        app.connect_activate(|app| {
+            gui::gui_controller::build_manager_ui(app, "widget");
+        });
+    } else {
+        app.connect_activate(build_ui);
+    }
+
     app.run_with_args(&args);
 }
