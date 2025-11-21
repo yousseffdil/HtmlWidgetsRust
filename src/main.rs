@@ -171,7 +171,7 @@ fn main() {
 
     if use_manager {
         app.connect_activate(|app| {
-            gui::gui_controller::build_manager_ui(app, "widget");
+            gui::gui_controller::build_manager_ui(app, "widgets");
         });
     } else {
         app.connect_activate(build_ui);
